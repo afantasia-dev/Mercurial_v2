@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cifrador visual minimal</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #000000;
+      --muted: #6f6f6f;
+      --line: #d9d9d9;
+      --soft: #f3f3f3;
+      --size: 76px;
+      --gap: 12px;
+      --radius: 0px;
+      --maxw: 1280px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      padding: 28px;
+    }
+
+    .wrap {
+      max-width: var(--maxw);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--fg);
+      padding-bottom: 16px;
+    }
+
+    .title {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .meta {
+      text-align: right;
+      font-size: 11px;
+      line-height: 1.5;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .control {
+      border: 1px solid var(--fg);
+      padding: 14px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--bg);
+    }
+
+    .control .label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .control .keys {
+      font-size: 13px;
+      line-height: 1.5;
+      text-transform: uppercase;
+    }
+
+    .control .value {
+      font-size: 40px;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(7, var(--size));
+      gap: var(--gap);
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .cell {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .img-box {
+      width: var(--size);
+      height: var(--size);
+      border: 1px solid var(--fg);
+      background: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: contrast(1) grayscale(1);
+    }
+
+    .char {
+      width: var(--size);
+      border-top: 2px solid var(--fg);
+      padding-top: 7px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .panel {
+      border: 1px solid var(--fg);
+      padding: 14px;
+      min-height: 110px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .status {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+    }
+
+    .hint {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .maps {
+      border: 1px solid var(--fg);
+      padding: 14px;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 900px) {
+      .board {
+        grid-template-columns: repeat(4, var(--size));
+      }
+
+      .controls,
+      .strip {
+        grid-template-columns: 1fr;
+      }
+
+      .meta {
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 520px) {
+      :root {
+        --size: 68px;
+        --gap: 10px;
+      }
+
+      body {
+        padding: 16px;
+      }
+
+      .board {
+        grid-template-columns: repeat(3, var(--size));
+      }
+
+      .control .value {
+        font-size: 32px;
+      }
+
+      .status {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="title">
+        <h1>Visual Rotor Cipher</h1>
+        <p>28 glyphs / 7-stage path / static png grid</p>
+      </div>
+
+      <div class="meta">
+        TAB = TOGGLE MAP<br>
+        W/S = ROTOR 1<br>
+        A/D = ROTOR 2<br>
+        Q/E = ROTOR 3
+      </div>
+    </header>
+
+    <section class="controls">
+      <div class="control">
+        <div class="label">Rotor 1</div>
+        <div class="keys">Q= +1<br>W = -1</div>
+        <div class="value" id="rotor1Value">0</div>
+      </div>
+
+      <div class="control">
+        <div class="label">Rotor 2</div>
+        <div class="keys">A = +1<br>S = -1</div>
+        <div class="value" id="rotor2Value">0</div>
+      </div>
+
+      <div class="control">
+        <div class="label">Rotor 3</div>
+        <div class="keys">Z = +1<br>X = -1</div>
+        <div class="value" id="rotor3Value">0</div>
+      </div>
+    </section>
+
+    <main>
+      <div id="board" class="board"></div>
+    </main>
+
+    <section class="strip">
+      <div class="panel">
+        <div class="panel-title">Mode</div>
+        <div class="status" id="status">Original</div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">System</div>
+        <div class="hint">
+          3 substitution stages + 1 mirror + reverse path through the first 3 stages.
+        </div>
+      </div>
+    </section>
+
+    <section class="maps" id="maps"></section>
+
+    <div class="footer-note">
+      PNG folder expected: /png/01.png ... /png/28.png
+    </div>
+  </div>
+
+  <script>
+    const ALPHABET = [
+      "A","B","C","D","E","F","G","H","I","J","K","L","M",
+      "N","O","P","Q","R","S","T","U","V","W","X","Y","Z",
+      ".","?"
+    ];
+
+    const N = ALPHABET.length;
+
+    const IMAGES = Array.from({ length: N }, (_, i) => {
+      const num = String(i + 1).padStart(2, "0");
+      return `png/${num}.png`;
+    });
+
+    const rotor1Base = [5, 12, 0, 20, 7, 1, 18, 9, 25, 3, 14, 27, 8, 16, 4, 22, 11, 26, 2, 24, 6, 19, 10, 15, 13, 23, 21, 17];
+    const rotor2Base = [8, 3, 17, 0, 24, 11, 6, 21, 14, 1, 27, 19, 9, 4, 25, 13, 22, 7, 15, 2, 26, 18, 10, 5, 20, 16, 12, 23];
+    const rotor3Base = [13, 7, 22, 4, 19, 0, 25, 11, 2, 16, 8, 24, 14, 6, 27, 10, 21, 1, 17, 23, 5, 12, 20, 9, 26, 3, 18, 15];
+
+    const reflector = [
+      27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14,
+      13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+    ];
+
+    let offset1 = 0;
+    let offset2 = 0;
+    let offset3 = 0;
+    let encryptedMode = false;
+
+    function mod(n, m) {
+      return ((n % m) + m) % m;
+    }
+
+    function invertMap(map) {
+      const inv = new Array(map.length);
+      for (let i = 0; i < map.length; i++) {
+        inv[map[i]] = i;
+      }
+      return inv;
+    }
+
+    function passRotor(i, wiring, offset) {
+      const shiftedIn = mod(i + offset, N);
+      const wired = wiring[shiftedIn];
+      return mod(wired - offset, N);
+    }
+
+    function passRotorInverse(i, inverseWiring, offset) {
+      const shiftedIn = mod(i + offset, N);
+      const wired = inverseWiring[shiftedIn];
+      return mod(wired - offset, N);
+    }
+
+    function encryptIndex(i) {
+      const inv1 = invertMap(rotor1Base);
+      const inv2 = invertMap(rotor2Base);
+      const inv3 = invertMap(rotor3Base);
+
+      let x = i;
+      x = passRotor(x, rotor1Base, offset1);
+      x = passRotor(x, rotor2Base, offset2);
+      x = passRotor(x, rotor3Base, offset3);
+      x = reflector[x];
+      x = passRotorInverse(x, inv3, offset3);
+      x = passRotorInverse(x, inv2, offset2);
+      x = passRotorInverse(x, inv1, offset1);
+      return x;
+    }
+
+    function getEncryptedOrder() {
+      return ALPHABET.map((_, i) => encryptIndex(i));
+    }
+
+    const board = document.getElementById("board");
+    const status = document.getElementById("status");
+    const maps = document.getElementById("maps");
+    const rotor1Value = document.getElementById("rotor1Value");
+    const rotor2Value = document.getElementById("rotor2Value");
+    const rotor3Value = document.getElementById("rotor3Value");
+
+    function renderBoard() {
+      board.innerHTML = "";
+      const encryptedOrder = getEncryptedOrder();
+      const order = encryptedMode
+        ? encryptedOrder
+        : Array.from({ length: N }, (_, i) => i);
+
+      order.forEach((sourceIndex, visualPos) => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+
+        const imgBox = document.createElement("div");
+        imgBox.className = "img-box";
+
+        const img = document.createElement("img");
+        img.src = IMAGES[sourceIndex];
+        img.alt = `PNG ${sourceIndex + 1} / ${ALPHABET[sourceIndex]}`;
+
+        const label = document.createElement("div");
+        label.className = "char";
+        label.textContent = ALPHABET[visualPos];
+
+        imgBox.appendChild(img);
+        cell.appendChild(imgBox);
+        cell.appendChild(label);
+        board.appendChild(cell);
+      });
+
+      status.textContent = encryptedMode ? "Encrypted" : "Original";
+      rotor1Value.textContent = offset1;
+      rotor2Value.textContent = offset2;
+      rotor3Value.textContent = offset3;
+    }
+
+    function renderMaps() {
+      const encryptedOrder = getEncryptedOrder();
+      const pairs = encryptedOrder
+        .map((v, i) => `${ALPHABET[i]}→${ALPHABET[v]}`)
+        .join("  ");
+
+      maps.textContent =
+        `R1 OFFSET: ${offset1}\n` +
+        `R2 OFFSET: ${offset2}\n` +
+        `R3 OFFSET: ${offset3}\n\n` +
+        `FINAL MAP\n${pairs}`;
+    }
+
+    function rerender() {
+      renderBoard();
+      renderMaps();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      const key = e.key.toLowerCase();
+
+      if (key === "tab") {
+        e.preventDefault();
+        encryptedMode = !encryptedMode;
+        rerender();
+        return;
+      }
+
+      if (key === "q") {
+        e.preventDefault();
+        offset1 = mod(offset1 + 1, N);
+        rerender();
+        return;
+      }
+
+      if (key === "w") {
+        e.preventDefault();
+        offset1 = mod(offset1 - 1, N);
+        rerender();
+        return;
+      }
+
+      if (key === "a") {
+        e.preventDefault();
+        offset2 = mod(offset2 + 1, N);
+        rerender();
+        return;
+      }
+
+      if (key === "s") {
+        e.preventDefault();
+        offset2 = mod(offset2 - 1, N);
+        rerender();
+        return;
+      }
+
+      if (key === "z") {
+        e.preventDefault();
+        offset3 = mod(offset3 + 1, N);
+        rerender();
+        return;
+      }
+
+      if (key === "x") {
+        e.preventDefault();
+        offset3 = mod(offset3 - 1, N);
+        rerender();
+        return;
+      }
+    });
+
+    rerender();
+  </script>
+</body>
+</html>
